@@ -147,7 +147,7 @@ jobs:
         with:
           name: extension-vsix
           path: arb-sorter-*.vsix
-          retention-days: 1
+          retention-days: 7
 
       - name: 🚀 Criar release no GitHub
         uses: softprops/action-gh-release@v2
