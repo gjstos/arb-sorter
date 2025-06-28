@@ -37,6 +37,7 @@ docs/
 # Git
 .git/
 .gitignore
+.github/
 
 # IDE
 .vscode/
