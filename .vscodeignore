@@ -29,9 +29,6 @@ build/
 *.vsix
 
 # Documentation
-README.md
-CHANGELOG.md
-CHABGELOG.md
 docs/
 
 # Git
