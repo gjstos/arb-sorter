@@ -62,6 +62,20 @@ jobs:
           npm version --no-git-tag-version "$VERSION"
           echo "✅ Versão atualizada com sucesso!"
 
+      - name: 🔍 Verificar tags existentes
+        id: check_tags
+        run: |
+          # Verificar se existem tags
+          if git tag | wc -l | grep -q "0"; then
+            echo "first_release=true" >> $GITHUB_OUTPUT
+            echo "from_tag=" >> $GITHUB_OUTPUT
+            echo "ℹ️ Primeira release detectada"
+          else
+            echo "first_release=false" >> $GITHUB_OUTPUT
+            echo "from_tag=$(git describe --abbrev=0 --tags)" >> $GITHUB_OUTPUT
+            echo "ℹ️ Release incremental detectada"
+          fi
+
       - name: 📋 Gerar changelog
         id: changelog
         uses: mikepenz/release-changelog-builder-action@v5
@@ -89,6 +103,8 @@ jobs:
               "empty_template": "- No changes"
             }
           token: ${{ secrets.GITHUB_TOKEN }}
+          fromTag: ${{ steps.check_tags.outputs.from_tag }}
+          toTag: "v${{ steps.version.outputs.version }}"
 
       - name: 📝 Criar arquivo CHANGELOG.md
         run: |
