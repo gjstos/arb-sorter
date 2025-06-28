@@ -142,6 +142,13 @@ jobs:
           npx vsce package
           echo "✅ Pacote .vsix gerado com sucesso!"
 
+      - name: 📦 Upload .vsix como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-vsix
+          path: arb-sorter-*.vsix
+          retention-days: 1
+
       - name: 🚀 Criar release no GitHub
         uses: softprops/action-gh-release@v2
         with:
@@ -152,3 +159,34 @@ jobs:
             arb-sorter-*.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 📦 Baixar .vsix do artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-vsix
+          path: .
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: 📦 Instalar VSCE
+        run: |
+          echo "📦 Instalando VSCE..."
+          npm install -g @vscode/vsce
+          echo "✅ VSCE instalado com sucesso!"
+
+      - name: 🚀 Publicar no VS Code Marketplace
+        run: |
+          echo "🚀 Publicando extensão no VS Code Marketplace..."
+          npx vsce publish -p ${{ secrets.VSCE_TOKEN }}
+          echo "✅ Extensão publicada com sucesso!"
