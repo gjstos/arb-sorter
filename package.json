@@ -3,6 +3,7 @@
   "displayName": "ARB Sorter",
   "description": "Sorts .arb files, keeping metadata organized and supporting multiple sorting modes.",
   "version": "0.0.1",
+  "publisher": "gjstos",
   "author": "Guilherme Santos",
   "repository": {
     "type": "git",
