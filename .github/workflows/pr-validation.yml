@@ -2,9 +2,7 @@ name: 🔍 PR Validation - ARB Sorter
 
 on:
   pull_request:
-    branches: [main, master]
-  push:
-    branches: [main, master]
+    types: [opened, edited, reopened, synchronize]
 
 jobs:
   validate:
