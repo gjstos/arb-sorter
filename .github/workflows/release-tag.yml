@@ -1,0 +1,110 @@
+name: Release & Tag ARB Sorter
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag para release (ex: v1.2.3). Se não informado, será gerada automaticamente."
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessário para pegar todas as tags
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 📦 Instalar dependências
+        run: yarn install --immutable
+
+      - name: 🔍 Validar tag (se informada)
+        if: github.event.inputs.tag != ''
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+
+          # Verificar se segue o padrão vX.Y.Z
+          if ! echo "$TAG" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' > /dev/null; then
+            echo "❌ Tag inválida: $TAG"
+            echo "A tag deve seguir o padrão vX.Y.Z (ex: v1.2.3)"
+            exit 1
+          fi
+
+          # Verificar se a tag já existe
+          if git tag | grep -Fx "$TAG" > /dev/null; then
+            echo "❌ Tag já existe: $TAG"
+            echo "Escolha uma tag diferente ou deixe vazio para gerar automaticamente"
+            exit 1
+          fi
+
+          echo "✅ Tag válida: $TAG"
+
+      - name: 🏷️ Calcular próxima versão
+        id: version
+        uses: PaulHatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+
+      - name: 📝 Atualizar versão no package.json
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          echo "🔄 Atualizando versão para: $VERSION"
+          npm version --no-git-tag-version "$VERSION"
+          echo "✅ Versão atualizada com sucesso!"
+
+      - name: 📋 Atualizar CHANGELOG.md
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          futureRelease: v${{ steps.version.outputs.version }}
+
+      - name: 💾 Commit e push de versão e changelog
+        run: |
+          echo "🔄 Configurando git..."
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          echo "📝 Adicionando arquivos..."
+          git add package.json CHANGELOG.md
+
+          echo "💬 Fazendo commit..."
+          git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
+
+          echo "🚀 Fazendo push para main..."
+          git push origin HEAD:main
+          echo "✅ Push realizado com sucesso!"
+
+      - name: 🏷️ Criar tag e push
+        run: |
+          echo "🏷️ Criando tag v${{ steps.version.outputs.version }}..."
+          git tag v${{ steps.version.outputs.version }}
+
+          echo "🚀 Fazendo push da tag..."
+          git push origin v${{ steps.version.outputs.version }}
+          echo "✅ Tag criada e enviada com sucesso!"
+
+      - name: 📦 Gerar .vsix
+        run: |
+          echo "📦 Gerando pacote .vsix..."
+          npx vsce package
+          echo "✅ Pacote .vsix gerado com sucesso!"
+
+      - name: 🚀 Criar release no GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          files: |
+            arb-sorter-*.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

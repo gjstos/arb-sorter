@@ -1,0 +1,27 @@
+{
+  "banana": "Banana",
+  "@banana": {
+    "description": "A yellow fruit"
+  },
+  "zebra": "Zebra",
+  "@zebra": {
+    "description": "A black and white animal"
+  },
+  "apple": "Apple",
+  "@apple": {
+    "description": "A red fruit"
+  },
+  "@@locale": "en",
+  "orange": "Orange",
+  "@orange": {
+    "description": "An orange fruit"
+  },
+  "Abacaxi": "Pineapple",
+  "abacaxi": "pineapple",
+  "empty": "Empty",
+  "@empty": {},
+  "number1": "um",
+  "exclam": "exclamação",
+  "grape": "Grape",
+  "@@last_modified": "2025-06-27T12:34:56"
+}

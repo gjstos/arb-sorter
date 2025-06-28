@@ -1,0 +1,35 @@
+# Node
+node_modules/
+
+# Yarn
+.yarn/
+.yarnrc*
+.pnp.*
+yarn.lock
+yarn-error.log*
+yarn-debug.log*
+
+# VSCode
+.vscode/
+
+# Build
+out/
+dist/
+*.vsix
+
+# Testes
+coverage/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+
+# Outros
+.env
+*.local
+
+# Yarn Plug'n'Play
+.pnp* 

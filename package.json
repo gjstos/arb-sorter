@@ -1,0 +1,86 @@
+{
+  "name": "arb-sorter",
+  "displayName": "ARB Sorter",
+  "description": "Sorts .arb files, keeping metadata organized and supporting multiple sorting modes.",
+  "version": "0.0.1",
+  "author": "Guilherme Santos",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gjstos/arb-sorter.git"
+  },
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "icon": "icon.png",
+  "activationEvents": [
+    "onCommand:arbSorter.sortAlpha",
+    "onCommand:arbSorter.sortAlphaCase",
+    "onCommand:arbSorter.sortReverse"
+  ],
+  "main": "src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "arbSorter.sortAlpha",
+        "title": "ARB: Sort Alphabetically (A-Z)"
+      },
+      {
+        "command": "arbSorter.sortAlphaCase",
+        "title": "ARB: Sort Alphabetically (A-Z, Case Sensitive)"
+      },
+      {
+        "command": "arbSorter.sortReverse",
+        "title": "ARB: Sort Reverse (Z-A)"
+      },
+      {
+        "command": "arbSorter.sortReverseCase",
+        "title": "ARB: Sort Reverse (Z-A, Case Sensitive)"
+      },
+      {
+        "command": "arbSorter.addSortOnSaveConfig",
+        "title": "ARB: Add sort on save config"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "ARB Sorter",
+      "properties": {
+        "arb-sorter.sortType": {
+          "type": "string",
+          "default": "alpha",
+          "enum": [
+            "alpha",
+            "alphaCase",
+            "reverse",
+            "reverseCase"
+          ],
+          "enumDescriptions": [
+            "Alphabetically (A-Z, case-insensitive)",
+            "Alphabetically (A-Z, case-sensitive)",
+            "Reverse (Z-A, case-insensitive)",
+            "Reverse (Z-A, case-sensitive)"
+          ],
+          "description": "Default sort type for .arb files"
+        }
+      }
+    }
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/mocha": "10.0.10",
+    "@types/node": "24.0.6",
+    "@types/vscode": "1.70.0",
+    "@typescript-eslint/eslint-plugin": "8.35.0",
+    "@typescript-eslint/parser": "8.35.0",
+    "@vscode/vsce": "3.6.0",
+    "eslint": "9.29.0",
+    "jest": "30.0.3",
+    "typescript": "5.8.3"
+  },
+  "scripts": {
+    "vsix": "vsce package --no-yarn",
+    "test": "jest",
+    "lint": "eslint src/**/*.js"
+  },
+  "packageManager": "yarn@4.9.2+sha512.1fc009bc09d13cfd0e19efa44cbfc2b9cf6ca61482725eb35bbc5e257e093ebf4130db6dfe15d604ff4b79efd8e1e8e99b25fa7d0a6197c9f9826358d4d65c3c"
+}

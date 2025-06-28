@@ -1,0 +1,167 @@
+name: 🔍 PR Validation - ARB Sorter
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🟢 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "yarn"
+
+      - name: 📦 Instalar dependências
+        run: yarn install --immutable
+
+      - name: 🔍 Linting
+        id: lint
+        continue-on-error: true
+        run: |
+          echo "🔍 Executando linting..."
+          yarn lint
+          echo "✅ Linting passou!"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 🧪 Executar testes
+        id: test
+        continue-on-error: true
+        run: |
+          echo "🧪 Executando testes..."
+          yarn test
+          echo "✅ Todos os testes passaram!"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 📦 Build da extensão
+        id: build
+        continue-on-error: true
+        run: |
+          echo "📦 Fazendo build da extensão..."
+          npx vsce package --no-yarn
+          echo "✅ Build concluído com sucesso!"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 🔍 Validar estrutura do projeto
+        id: structure
+        continue-on-error: true
+        run: |
+          echo "🔍 Validando estrutura do projeto..."
+
+          # Verificar se arquivos essenciais existem
+          if [ ! -f "package.json" ]; then
+            echo "❌ package.json não encontrado"
+            exit 1
+          fi
+
+          if [ ! -f "src/extension.js" ]; then
+            echo "❌ src/extension.js não encontrado"
+            exit 1
+          fi
+
+          if [ ! -f "README.md" ]; then
+            echo "❌ README.md não encontrado"
+            exit 1
+          fi
+
+          echo "✅ Estrutura do projeto válida!"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 📋 Verificar package.json
+        id: package
+        continue-on-error: true
+        run: |
+          echo "📋 Validando package.json..."
+
+          # Verificar se a versão é válida
+          VERSION=$(node -p "require('./package.json').version")
+          if ! echo "$VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' > /dev/null; then
+            echo "❌ Versão inválida no package.json: $VERSION"
+            exit 1
+          fi
+
+          # Verificar se campos obrigatórios existem
+          if [ -z "$(node -p "require('./package.json').name")" ]; then
+            echo "❌ Campo 'name' não encontrado no package.json"
+            exit 1
+          fi
+
+          if [ -z "$(node -p "require('./package.json').displayName")" ]; then
+            echo "❌ Campo 'displayName' não encontrado no package.json"
+            exit 1
+          fi
+
+          echo "✅ package.json válido!"
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: 🎯 Resumo da validação
+        run: |
+          echo "🎯 Resumo da validação do PR:"
+          echo "=================================="
+
+          # Linting
+          if [ "${{ steps.lint.outputs.status }}" = "success" ]; then
+            echo "✅ Linting: PASSOU"
+            LINT_STATUS=true
+          else
+            echo "❌ Linting: FALHOU"
+            LINT_STATUS=false
+          fi
+
+          # Testes
+          if [ "${{ steps.test.outputs.status }}" = "success" ]; then
+            echo "✅ Testes: PASSOU"
+            TEST_STATUS=true
+          else
+            echo "❌ Testes: FALHOU"
+            TEST_STATUS=false
+          fi
+
+          # Build
+          if [ "${{ steps.build.outputs.status }}" = "success" ]; then
+            echo "✅ Build: PASSOU"
+            BUILD_STATUS=true
+          else
+            echo "❌ Build: FALHOU"
+            BUILD_STATUS=false
+          fi
+
+          # Estrutura
+          if [ "${{ steps.structure.outputs.status }}" = "success" ]; then
+            echo "✅ Estrutura: PASSOU"
+            STRUCTURE_STATUS=true
+          else
+            echo "❌ Estrutura: FALHOU"
+            STRUCTURE_STATUS=false
+          fi
+
+          # Package.json
+          if [ "${{ steps.package.outputs.status }}" = "success" ]; then
+            echo "✅ Package.json: PASSOU"
+            PACKAGE_STATUS=true
+          else
+            echo "❌ Package.json: FALHOU"
+            PACKAGE_STATUS=false
+          fi
+
+          echo "=================================="
+
+          # Verificar se todos passaram
+          if [ "$LINT_STATUS" = true ] && \
+             [ "$TEST_STATUS" = true ] && \
+             [ "$BUILD_STATUS" = true ] && \
+             [ "$STRUCTURE_STATUS" = true ] && \
+             [ "$PACKAGE_STATUS" = true ]; then
+            echo "🚀 PR está pronto para merge!"
+          else
+            echo "⚠️  PR precisa de correções antes do merge."
+            exit 1
+          fi
