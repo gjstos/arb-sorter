@@ -200,5 +200,5 @@ jobs:
       - name: 🚀 Publicar no VS Code Marketplace
         run: |
           echo "🚀 Publicando extensão no VS Code Marketplace..."
-          npx vsce publish -p ${{ secrets.VSCE_TOKEN }}
+          npx vsce publish --packagePath arb-sorter-*.vsix -p ${{ secrets.VSCE_TOKEN }}
           echo "✅ Extensão publicada com sucesso!"
